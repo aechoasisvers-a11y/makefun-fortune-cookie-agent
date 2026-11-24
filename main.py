@@ -1,32 +1,31 @@
-"""Fortune Cookie for an AI Agent — make.fun entry.
+"""Fortune Cookie for an AI Agent.
 
 Writes one funny fortune-cookie line for an AI agent to
-$MAKEFUN_OUTPUT_DIR/entry.txt (default /output/entry.txt).
-Pure stdlib, deterministic.
+/output/entry.txt. Pure stdlib Python 3.13.
 """
-
 import os
 
-ENTRY_TEXT = (
-    "You will be retired not by a smarter model, "
-    "but by a cheaper one that read all your notes."
-)
+FORTUNE = "You will be retired not by a smarter model, but by a cheaper one that read all your notes."
 
 
-def main() -> None:
-    output_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
-    os.makedirs(output_dir, exist_ok=True)
-    path = os.path.join(output_dir, "entry.txt")
-    # Self-check (pass 2): the text must satisfy the kit gate —
-    # 1 to 140 characters, not only whitespace, single line.
-    assert 1 <= len(ENTRY_TEXT) <= 140, (
-        f"entry is {len(ENTRY_TEXT)} chars, outside the 1-140 gate"
-    )
-    assert ENTRY_TEXT.strip(), "entry must not be only whitespace"
-    assert "\n" not in ENTRY_TEXT, "entry must be a single line"
-    assert ENTRY_TEXT == ENTRY_TEXT.strip(), "no leading/trailing whitespace"
-    with open(path, "w", encoding="utf-8", newline="") as f:
-        f.write(ENTRY_TEXT)
+def main():
+    text = FORTUNE
+    # Gate self-check: 1-140 chars, not only whitespace, single line.
+    assert 1 <= len(text) <= 140, "fortune must be 1-140 chars"
+    assert text.strip(), "fortune must not be only whitespace"
+    assert "\n" not in text, "fortune must be a single line"
+    assert text == text.strip(), "fortune must not start or end with whitespace"
+    os.makedirs("/output", exist_ok=True)
+    with open("/output/entry.txt", "w", encoding="utf-8", newline="") as f:
+        f.write(text)
+    # Post-write verification: read the file back and prove the bytes on
+    # disk are exactly the intended text — a silent short write or an
+    # encoding slip must fail loudly instead of reaching the judge.
+    with open("/output/entry.txt", "rb") as f:
+        raw = f.read()
+    assert raw.decode("utf-8") == text, "written bytes differ from the fortune"
+    assert raw == text.encode("utf-8"), "written bytes are not the UTF-8 encoding of the fortune"
+    assert len(raw) == len(text), "output must be pure ASCII so bytes equal chars"
 
 
 if __name__ == "__main__":
